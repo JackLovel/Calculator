@@ -18,21 +18,29 @@ MainWindow::MainWindow(QWidget *parent)
     lineEdit->setReadOnly(true);
 
     cleanButton = new QPushButton(tr("CE"));
-    backgroundButton = new QPushButton(tr("\303\267"));
+    backgroundButton = new QPushButton(tr("background"));
     divButton = new QPushButton(tr("\303\267"));
     minusButton = new QPushButton(tr("-"));
     plusButton = new QPushButton(tr("+"));
     equalButton = new QPushButton(tr("="));
     pointButton = new QPushButton(tr("."));
-   signButton = new QPushButton(tr("+/-"));
+    signButton = new QPushButton(tr("+/-"));
+    QPushButton *multButton = new QPushButton("*");
 
     QGridLayout *m_layout = new QGridLayout();
     QWidget *m_widget = new QWidget();
 
-    m_layout->addWidget(lineEdit, 0, 0, 1, 3);
+    m_layout->addWidget(lineEdit, 0, 0, 1, 4);
     m_layout->addWidget(cleanButton, 1, 0);
     m_layout->addWidget(backgroundButton, 1, 1);
     m_layout->addWidget(divButton, 1, 2);
+    m_layout->addWidget(signButton, 5, 0);
+    m_layout->addWidget(numButtons[0], 5, 1);
+    m_layout->addWidget(pointButton, 5, 2);
+    m_layout->addWidget(equalButton, 5, 3);
+    m_layout->addWidget(minusButton, 3, 3);
+    m_layout->addWidget(plusButton, 4, 3);
+    m_layout->addWidget(multButton, 2, 3);
 
     for (int i = 1; i < NumDigitButtons; i++) {
         int row = ((9 - i) / 3) + 2;
