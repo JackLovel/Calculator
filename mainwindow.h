@@ -1,12 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "button.h"
+
 #include <QMainWindow>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QGridLayout>
 #include <QWidget>
 #include <QLabel>
+#include <QQueue>
+#include <QStack>
 
 class MainWindow : public QMainWindow
 {
@@ -18,19 +22,21 @@ public:
 
 private slots:
     void digitClicked();
+    void cleanSlot();
 
 private:
     QGridLayout *m_layout;
     enum { NumDigitButtons = 10 };
-    QPushButton *numButtons[NumDigitButtons];
+    Button *numButtons[NumDigitButtons];
 
-    QPushButton *cleanButton;
-    QPushButton *backgroundButton;
-    QPushButton *divButton;
-    QPushButton *minusButton;
-    QPushButton *plusButton;
-    QPushButton *equalButton;
-    QPushButton *pointButton;
-    QPushButton *signButton;
+    Button *cleanButton;
+    Button *backgroundButton;
+    Button *divButton;
+    Button *minusButton;
+    Button *plusButton;
+    Button *equalButton;
+    Button *pointButton;
+    Button *signButton;
+    QLineEdit *lineEdit;
 };
 #endif // MAINWINDOW_H

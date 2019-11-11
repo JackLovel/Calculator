@@ -4,7 +4,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     for (int i = 0; i < NumDigitButtons; ++i) {
-        numButtons[i] = new QPushButton(QString::number(i));
+        numButtons[i] = new Button(QString::number(i));
         connect(numButtons[i], &QPushButton::clicked, this, &MainWindow::digitClicked);
     }
 
@@ -12,20 +12,20 @@ MainWindow::MainWindow(QWidget *parent)
     font.setFamily("Consolas");//字体
     font.setPointSize(20);    // 字体大小
 
-    QLineEdit *lineEdit = new QLineEdit("0");
+    lineEdit = new QLineEdit("0");
     lineEdit->setAlignment(Qt::AlignRight);
     lineEdit->setFont(font);
     lineEdit->setReadOnly(true);
 
-    cleanButton = new QPushButton(tr("CE"));
-    backgroundButton = new QPushButton(tr("background"));
-    divButton = new QPushButton(tr("\303\267"));
-    minusButton = new QPushButton(tr("-"));
-    plusButton = new QPushButton(tr("+"));
-    equalButton = new QPushButton(tr("="));
-    pointButton = new QPushButton(tr("."));
-    signButton = new QPushButton(tr("+/-"));
-    QPushButton *multButton = new QPushButton("*");
+    cleanButton = new Button(tr("CE"));
+    backgroundButton = new Button(tr("background"));
+    divButton = new Button(tr("\303\267"));
+    minusButton = new Button(tr("-"));
+    plusButton = new Button(tr("+"));
+    equalButton = new Button(tr("="));
+    pointButton = new Button(tr("."));
+    signButton = new Button(tr("+/-"));
+    Button *multButton = new Button("*");
 
     QGridLayout *m_layout = new QGridLayout();
     QWidget *m_widget = new QWidget();
@@ -48,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent)
         m_layout->addWidget(numButtons[i], row, col);
     }
 
+    connect(cleanButton, &QPushButton::clicked, this, &MainWindow::cleanSlot);
+
     m_widget->setLayout(m_layout);
     setCentralWidget(m_widget);
 }
@@ -62,3 +64,7 @@ void MainWindow::digitClicked()
 
 }
 
+void MainWindow::cleanSlot()
+{
+    lineEdit->setText("0");
+}
