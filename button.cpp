@@ -12,8 +12,3 @@ Button::Button(const QString &text, QWidget *parent)
     resize(40, 40);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 }
-
-Button::~Button()
-{
-
-}

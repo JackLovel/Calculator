@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QQueue>
 #include <QStack>
+#include <QObject>
 
 class MainWindow : public QMainWindow
 {
@@ -20,16 +21,31 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    bool calculate(double rightOperand, const QString &pendingOperator);
+    Button *createButton(const QString &text, const char *member);
+    void abortOperation();
+    void clearAll();
+
 private slots:
     void digitClicked();
-    void cleanSlot();
+    void clear();
+    void unaryOperatorClicked();
+    void addSlot();
+    void equalSlot();
+    void changeSignSlot();
 
 private:
+    Button *clearButton;
+    double sumSoFar;
+    double factorSoFar;
+    bool waitingForOperand;
+    QString pendingMultiplicativeOperator;
+    QString pendingAdditiveOperator;
     QGridLayout *m_layout;
     enum { NumDigitButtons = 10 };
     Button *numButtons[NumDigitButtons];
 
-    Button *cleanButton;
+//    Button *cleanButton;
     Button *backgroundButton;
     Button *divButton;
     Button *minusButton;

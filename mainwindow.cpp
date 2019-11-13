@@ -1,11 +1,16 @@
 #include "mainwindow.h"
 
+#include <QtMath>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    waitingForOperand = true;
+    factorSoFar = 0.0;
+    sumSoFar = 0.0;
+
     for (int i = 0; i < NumDigitButtons; ++i) {
-        numButtons[i] = new Button(QString::number(i));
-        connect(numButtons[i], &QPushButton::clicked, this, &MainWindow::digitClicked);
+        numButtons[i] = createButton(QString::number(i), SLOT(digitClicked()));
     }
 
     QFont font;
@@ -17,21 +22,25 @@ MainWindow::MainWindow(QWidget *parent)
     lineEdit->setFont(font);
     lineEdit->setReadOnly(true);
 
-    cleanButton = new Button(tr("CE"));
+    clearButton = createButton(tr("clear"), SLOT(clear()));
+//    cleanButton = new Button(tr("CE"));
     backgroundButton = new Button(tr("background"));
-    divButton = new Button(tr("\303\267"));
+    divButton = new Button(tr("/"));
     minusButton = new Button(tr("-"));
-    plusButton = new Button(tr("+"));
-    equalButton = new Button(tr("="));
+    plusButton = createButton(tr("+"), SLOT(addSlot()));
+
+//    equalButton = new Button(tr("="));
+    equalButton = createButton(tr("="), SLOT(equalSlot()));
+
     pointButton = new Button(tr("."));
-    signButton = new Button(tr("+/-"));
+    signButton = createButton(tr("-/+"), SLOT(changeSignSlot()));
     Button *multButton = new Button("*");
 
     QGridLayout *m_layout = new QGridLayout();
     QWidget *m_widget = new QWidget();
 
     m_layout->addWidget(lineEdit, 0, 0, 1, 4);
-    m_layout->addWidget(cleanButton, 1, 0);
+    m_layout->addWidget(clearButton, 1, 0);
     m_layout->addWidget(backgroundButton, 1, 1);
     m_layout->addWidget(divButton, 1, 2);
     m_layout->addWidget(signButton, 5, 0);
@@ -48,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent)
         m_layout->addWidget(numButtons[i], row, col);
     }
 
-    connect(cleanButton, &QPushButton::clicked, this, &MainWindow::cleanSlot);
 
     m_widget->setLayout(m_layout);
     setCentralWidget(m_widget);
@@ -61,10 +69,171 @@ MainWindow::~MainWindow()
 
 void MainWindow::digitClicked()
 {
+    Button *clickedButton = qobject_cast<Button *>(sender());
+    int digitValue = clickedButton->text().toInt();
+    if (lineEdit->text() == "0" && digitValue == 0.0)
+        return;
 
+    if (waitingForOperand) {
+        lineEdit->clear();
+        waitingForOperand = false;
+    }
+
+    lineEdit->setText(lineEdit->text() + QString::number(digitValue));
 }
 
-void MainWindow::cleanSlot()
+void MainWindow::clear()
 {
+    if (waitingForOperand)
+        return;
+
     lineEdit->setText("0");
+    waitingForOperand = true;
+}
+
+Button *MainWindow::createButton(const QString &text, const char *member)
+{
+    Button *button = new Button(text);
+    connect(button, SIGNAL(clicked()), this, member);
+    return button;
+}
+
+void MainWindow::clearAll()
+{
+    sumSoFar = 0.0;
+    factorSoFar = 0.0;
+    pendingAdditiveOperator.clear();
+    pendingMultiplicativeOperator.clear();
+    lineEdit->setText("0");
+    waitingForOperand = true;
+
+}
+void MainWindow::abortOperation()
+{
+    clearAll();
+    lineEdit->setText(tr("###"));
+}
+
+void MainWindow::unaryOperatorClicked()
+{
+    Button *clickedButton = qobject_cast<Button *>(sender());
+    QString clickedOperator = clickedButton->text();
+    double operand = lineEdit->text().toDouble();
+    double result = 0.0;
+
+    if (clickedOperator == tr("Sqrt")) {
+        if (operand < 0.0) {
+            abortOperation();
+            return;
+        }
+
+        result = qSqrt(operand);
+
+    } else if (clickedOperator == tr("x\302\262")) {
+        result = qPow(operand, 2.0);
+    } else if (clickedOperator == tr("1/x")) {
+        if (operand == 0.0) {
+            abortOperation();
+            return;
+        }
+        result = 1.0 / operand;
+    }
+
+    lineEdit->setText(QString::number(result));
+    waitingForOperand = true;
+}
+
+void MainWindow::addSlot()
+{
+    Button *clickButton = qobject_cast<Button *>(sender());
+    QString clickOperator = clickButton->text();
+    double operand = lineEdit->text().toDouble();
+
+    if (!pendingMultiplicativeOperator.isEmpty()) {
+        if (!calculate(operand, pendingMultiplicativeOperator)) {
+            abortOperation();
+            return;
+        }
+        lineEdit->setText(QString::number(factorSoFar));
+        operand = factorSoFar;
+        factorSoFar = 0.0;
+        pendingMultiplicativeOperator.clear();
+    }
+
+    if (!pendingAdditiveOperator.isEmpty()) {
+        if (!calculate(operand, pendingAdditiveOperator)) {
+            abortOperation();
+            return;
+        }
+        lineEdit->setText(QString::number(sumSoFar));
+    } else {
+        sumSoFar = operand;
+    }
+
+    pendingAdditiveOperator = clickOperator;
+    waitingForOperand = true;
+}
+
+bool MainWindow::calculate(double rightOperand, const QString &pendingOperator)
+{
+    if (pendingOperator == tr("+")) {
+        sumSoFar += rightOperand;
+    } else if (pendingOperator == tr("-")) {
+
+    } else if (pendingOperator == tr("*")) {
+        factorSoFar *= rightOperand;
+    } else if (pendingOperator == tr("\\")) {
+        if (rightOperand == 0.0) {
+            return false;
+        }
+
+        factorSoFar /= rightOperand;
+    }
+
+    return true;
+}
+
+void MainWindow::equalSlot()
+{
+    double operand = lineEdit->text().toDouble();
+
+    if (pendingMultiplicativeOperator.isEmpty()) {
+        if (!calculate(operand, pendingMultiplicativeOperator)) {
+            abortOperation();
+            return;
+        }
+
+        operand = factorSoFar;
+        factorSoFar = 0.0;
+        pendingMultiplicativeOperator.clear();
+    }
+
+    if (!pendingAdditiveOperator.isEmpty()) {
+        if (!calculate(operand, pendingAdditiveOperator)) {
+            abortOperation();
+            return;
+        }
+
+        pendingAdditiveOperator.clear();
+    } else {
+        sumSoFar = operand;
+    }
+
+    lineEdit->setText(QString::number(sumSoFar));
+    sumSoFar = 0.0;
+    waitingForOperand = true;
+}
+
+void MainWindow::changeSignSlot()
+{
+    QString text = lineEdit->text();
+    double value = text.toDouble();
+
+    if (value > 0.0) {
+        text.prepend(tr("-"));
+    } else if (value < 0.0) {
+        text.remove(0, 1);
+    }
+
+    lineEdit->setText(text);
 }
