@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 
 #include <QtMath>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    sumInMemory = 0.0;
     waitingForOperand = true;
     factorSoFar = 0.0;
     sumSoFar = 0.0;
@@ -23,16 +25,13 @@ MainWindow::MainWindow(QWidget *parent)
     lineEdit->setReadOnly(true);
 
     clearButton = createButton(tr("clear"), SLOT(clear()));
-//    cleanButton = new Button(tr("CE"));
-    backgroundButton = new Button(tr("background"));
+    backgroundButton = createButton(tr("backspace"), SLOT(backspaceSlot()));
     divButton = new Button(tr("/"));
-    minusButton = new Button(tr("-"));
+    minusButton = createButton(tr("-"), SLOT(addSlot()));
     plusButton = createButton(tr("+"), SLOT(addSlot()));
-
-//    equalButton = new Button(tr("="));
     equalButton = createButton(tr("="), SLOT(equalSlot()));
 
-    pointButton = new Button(tr("."));
+    pointButton = createButton(tr("."), SLOT(pointSlot()));
     signButton = createButton(tr("-/+"), SLOT(changeSignSlot()));
     Button *multButton = new Button("*");
 
@@ -148,7 +147,7 @@ void MainWindow::addSlot()
     Button *clickButton = qobject_cast<Button *>(sender());
     QString clickOperator = clickButton->text();
     double operand = lineEdit->text().toDouble();
-
+    qDebug() << "operand" << operand;
     if (!pendingMultiplicativeOperator.isEmpty()) {
         if (!calculate(operand, pendingMultiplicativeOperator)) {
             abortOperation();
@@ -177,9 +176,10 @@ void MainWindow::addSlot()
 bool MainWindow::calculate(double rightOperand, const QString &pendingOperator)
 {
     if (pendingOperator == tr("+")) {
+        qDebug() << sumSoFar << rightOperand << pendingOperator;
         sumSoFar += rightOperand;
     } else if (pendingOperator == tr("-")) {
-
+        sumSoFar -= rightOperand;
     } else if (pendingOperator == tr("*")) {
         factorSoFar *= rightOperand;
     } else if (pendingOperator == tr("\\")) {
@@ -197,7 +197,7 @@ void MainWindow::equalSlot()
 {
     double operand = lineEdit->text().toDouble();
 
-    if (pendingMultiplicativeOperator.isEmpty()) {
+    if (!pendingMultiplicativeOperator.isEmpty()) {
         if (!calculate(operand, pendingMultiplicativeOperator)) {
             abortOperation();
             return;
@@ -233,6 +233,37 @@ void MainWindow::changeSignSlot()
         text.prepend(tr("-"));
     } else if (value < 0.0) {
         text.remove(0, 1);
+    }
+
+    lineEdit->setText(text);
+}
+
+void MainWindow::pointSlot()
+{
+    if (waitingForOperand) {
+        lineEdit->setText("0");
+    }
+
+    if (!lineEdit->text().contains('.')) {
+        lineEdit->setText(lineEdit->text() + tr("."));
+    }
+
+    waitingForOperand = false;
+}
+
+void MainWindow::backspaceSlot()
+{
+    if (waitingForOperand)
+    {
+        return;
+    }
+
+    QString text = lineEdit->text();
+    text.chop(1);
+
+    if (text.isEmpty()) {
+        text = "0";
+        waitingForOperand = true;
     }
 
     lineEdit->setText(text);

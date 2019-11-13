@@ -33,9 +33,12 @@ private slots:
     void addSlot();
     void equalSlot();
     void changeSignSlot();
+    void pointSlot();
+    void backspaceSlot();
 
 private:
     Button *clearButton;
+    double sumInMemory;
     double sumSoFar;
     double factorSoFar;
     bool waitingForOperand;
