@@ -118,7 +118,8 @@ void MainWindow::addSlot()
     Button *clickButton = qobject_cast<Button *>(sender());
     QString clickOperator = clickButton->text();
     double operand = lineEdit->text().toDouble();
-    qDebug() << "operand" << operand;
+//    qDebug() << "operand" << operand;
+
     if (!pendingMultiplicativeOperator.isEmpty()) {
         if (!calculate(operand, pendingMultiplicativeOperator)) {
             abortOperation();
@@ -168,7 +169,7 @@ void MainWindow::multSlot()
 bool MainWindow::calculate(double rightOperand, const QString &pendingOperator)
 {
     if (pendingOperator == tr("+")) {
-        qDebug() << sumSoFar << rightOperand << pendingOperator;
+//        qDebug() << sumSoFar << rightOperand << pendingOperator;
         sumSoFar += rightOperand;
     } else if (pendingOperator == tr("-")) {
         sumSoFar -= rightOperand;
