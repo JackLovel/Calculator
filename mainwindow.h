@@ -29,12 +29,12 @@ public:
 private slots:
     void digitClicked();
     void clear();
-    void unaryOperatorClicked();
     void addSlot();
     void equalSlot();
     void changeSignSlot();
     void pointSlot();
     void backspaceSlot();
+    void multSlot();
 
 private:
     Button *clearButton;
@@ -48,7 +48,6 @@ private:
     enum { NumDigitButtons = 10 };
     Button *numButtons[NumDigitButtons];
 
-//    Button *cleanButton;
     Button *backgroundButton;
     Button *divButton;
     Button *minusButton;
@@ -56,6 +55,8 @@ private:
     Button *equalButton;
     Button *pointButton;
     Button *signButton;
+    Button *multButton;
+
     QLineEdit *lineEdit;
 };
 #endif // MAINWINDOW_H

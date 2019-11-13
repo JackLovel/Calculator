@@ -26,14 +26,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     clearButton = createButton(tr("clear"), SLOT(clear()));
     backgroundButton = createButton(tr("backspace"), SLOT(backspaceSlot()));
-    divButton = new Button(tr("/"));
+    divButton = createButton(tr("\303\267"), SLOT(multSlot()));
     minusButton = createButton(tr("-"), SLOT(addSlot()));
     plusButton = createButton(tr("+"), SLOT(addSlot()));
     equalButton = createButton(tr("="), SLOT(equalSlot()));
 
     pointButton = createButton(tr("."), SLOT(pointSlot()));
     signButton = createButton(tr("-/+"), SLOT(changeSignSlot()));
-    Button *multButton = new Button("*");
+    multButton = createButton(tr("*"), SLOT(multSlot()));
 
     QGridLayout *m_layout = new QGridLayout();
     QWidget *m_widget = new QWidget();
@@ -83,8 +83,8 @@ void MainWindow::digitClicked()
 
 void MainWindow::clear()
 {
-    if (waitingForOperand)
-        return;
+//    if (waitingForOperand)
+//        return;
 
     lineEdit->setText("0");
     waitingForOperand = true;
@@ -111,35 +111,6 @@ void MainWindow::abortOperation()
 {
     clearAll();
     lineEdit->setText(tr("###"));
-}
-
-void MainWindow::unaryOperatorClicked()
-{
-    Button *clickedButton = qobject_cast<Button *>(sender());
-    QString clickedOperator = clickedButton->text();
-    double operand = lineEdit->text().toDouble();
-    double result = 0.0;
-
-    if (clickedOperator == tr("Sqrt")) {
-        if (operand < 0.0) {
-            abortOperation();
-            return;
-        }
-
-        result = qSqrt(operand);
-
-    } else if (clickedOperator == tr("x\302\262")) {
-        result = qPow(operand, 2.0);
-    } else if (clickedOperator == tr("1/x")) {
-        if (operand == 0.0) {
-            abortOperation();
-            return;
-        }
-        result = 1.0 / operand;
-    }
-
-    lineEdit->setText(QString::number(result));
-    waitingForOperand = true;
 }
 
 void MainWindow::addSlot()
@@ -173,6 +144,27 @@ void MainWindow::addSlot()
     waitingForOperand = true;
 }
 
+void MainWindow::multSlot()
+{
+    Button *clickButton = qobject_cast<Button *>(sender());
+    QString clickOperator = clickButton->text();
+    double operand = lineEdit->text().toDouble();
+
+    if (!pendingMultiplicativeOperator.isEmpty()) {
+        if (!calculate(operand, pendingMultiplicativeOperator)) {
+            abortOperation();
+            return;
+        }
+
+        lineEdit->setText(QString::number(factorSoFar));
+    } else {
+        factorSoFar = operand;
+    }
+
+    pendingMultiplicativeOperator = clickOperator;
+    waitingForOperand = true;
+}
+
 bool MainWindow::calculate(double rightOperand, const QString &pendingOperator)
 {
     if (pendingOperator == tr("+")) {
@@ -182,7 +174,7 @@ bool MainWindow::calculate(double rightOperand, const QString &pendingOperator)
         sumSoFar -= rightOperand;
     } else if (pendingOperator == tr("*")) {
         factorSoFar *= rightOperand;
-    } else if (pendingOperator == tr("\\")) {
+    } else if (pendingOperator == tr("\303\267")) {
         if (rightOperand == 0.0) {
             return false;
         }
